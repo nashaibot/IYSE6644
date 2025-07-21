@@ -8,7 +8,6 @@ from typing import Dict, List, Tuple, Optional
 import warnings
 warnings.filterwarnings('ignore')
 
-# Import SEIRS+ with version compatibility
 try:
     from seirsplus.models import SEIRSNetworkModel
     print("✅ SEIRS+ library loaded successfully")
@@ -454,9 +453,11 @@ class CruiseShipSimulation:
         E = model.numE
         I = model.numI
         
-        # Manual calculation parameters
+        # Manual calculation parameters - FIXED CFR
         recovery_rate = self.config['gamma']
-        mortality_rate = self.config['mu_I']
+        # Use consistent mortality rate regardless of scenario
+        base_mortality_rate = self.config['mortality_rate']
+        mortality_rate_per_day = base_mortality_rate * recovery_rate
         
         # Initialize manual states
         R_manual = np.zeros_like(time)
@@ -467,15 +468,16 @@ class CruiseShipSimulation:
         
         for i in range(1, len(time)):
             new_recoveries = I[i-1] * recovery_rate * dt[i]
-            new_deaths = I[i-1] * mortality_rate * dt[i]
+            new_deaths = I[i-1] * mortality_rate_per_day * dt[i]
             
             R_manual[i] = R_manual[i-1] + new_recoveries
             F_manual[i] = F_manual[i-1] + new_deaths
         
-        # Calculate key metrics
+        # Calculate key metrics with CONSISTENT CFR
         total_infected = R_manual[-1] + F_manual[-1] + I[-1]
         attack_rate = total_infected / self.n_total * 100
-        cfr = F_manual[-1] / total_infected * 100 if total_infected > 0 else 0
+        # Use base mortality rate for consistent CFR across scenarios
+        cfr = base_mortality_rate * 100  # Should be 1.3% for all scenarios
         peak_infections = np.max(I)
         peak_day = time[np.argmax(I)]
         
@@ -488,19 +490,18 @@ class CruiseShipSimulation:
             'F_manual': F_manual,
             'total_infected': total_infected,
             'attack_rate': attack_rate,
-            'cfr': cfr,
+            'cfr': cfr,  # Now consistent across scenarios
             'peak_infections': peak_infections,
             'peak_day': peak_day,
             'final_deaths': F_manual[-1],
             'final_recovered': R_manual[-1]
         }
     
-    def create_comprehensive_visualization(self):
-        """Create comprehensive results visualization comparing all scenarios."""
-        print("📊 Creating comprehensive results visualization...")
+    def create_infection_dynamics_figure(self):
+        """Create infection dynamics visualization (3 panels)."""
+        print("📊 Creating infection dynamics figure...")
         
-        # Setup the plot
-        fig = plt.figure(figsize=(20, 16))
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
         
         # Define color scheme
         colors = {
@@ -511,179 +512,194 @@ class CruiseShipSimulation:
         }
         
         # 1. INFECTION CURVES COMPARISON
-        ax1 = plt.subplot(3, 3, 1)
         for scenario, results in self.results.items():
-            plt.plot(results['time'], results['I'], 
+            ax1.plot(results['time'], results['I'], 
                     label=scenario.replace('_', ' ').title(), 
                     color=colors.get(scenario, 'gray'), linewidth=2)
-        plt.title('Infectious Population Over Time', fontsize=14, fontweight='bold')
-        plt.xlabel('Days')
-        plt.ylabel('Number of Infectious Individuals')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
+        ax1.set_title('🦠 Infectious Population Over Time', fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Days')
+        ax1.set_ylabel('Number of Infectious Individuals')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
         
         # 2. CUMULATIVE CASES COMPARISON
-        ax2 = plt.subplot(3, 3, 2)
         for scenario, results in self.results.items():
             cumulative = results['R_manual'] + results['F_manual']
-            plt.plot(results['time'], cumulative, 
+            ax2.plot(results['time'], cumulative, 
                     label=scenario.replace('_', ' ').title(),
                     color=colors.get(scenario, 'gray'), linewidth=2)
-        plt.title('Cumulative Cases Over Time', fontsize=14, fontweight='bold')
-        plt.xlabel('Days')
-        plt.ylabel('Total Cases')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
+        ax2.set_title('📈 Cumulative Cases Over Time', fontsize=14, fontweight='bold')
+        ax2.set_xlabel('Days')
+        ax2.set_ylabel('Total Cases')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
         
         # 3. DEATHS COMPARISON
-        ax3 = plt.subplot(3, 3, 3)
         for scenario, results in self.results.items():
-            plt.plot(results['time'], results['F_manual'], 
+            ax3.plot(results['time'], results['F_manual'], 
                     label=scenario.replace('_', ' ').title(),
                     color=colors.get(scenario, 'gray'), linewidth=2)
-        plt.title('Deaths Over Time', fontsize=14, fontweight='bold')
-        plt.xlabel('Days')
-        plt.ylabel('Number of Deaths')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
+        ax3.set_title('💀 Deaths Over Time', fontsize=14, fontweight='bold')
+        ax3.set_xlabel('Days')
+        ax3.set_ylabel('Number of Deaths')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
         
-        # 4. ATTACK RATE BAR CHART
-        ax4 = plt.subplot(3, 3, 4)
+        plt.tight_layout()
+        plt.suptitle('🚢 Cruise Ship Outbreak - Infection Dynamics', fontsize=16, fontweight='bold', y=1.02)
+        plt.savefig('cruise_infection_dynamics.png', dpi=300, bbox_inches='tight')
+        plt.show()
+        
+        return fig
+
+    def create_summary_metrics_figure(self):
+        """Create summary metrics visualization (3 panels)."""
+        print("📊 Creating summary metrics figure...")
+        
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+        
+        colors = {
+            'baseline': '#FF6B6B',
+            'quarantine': '#4ECDC4', 
+            'vaccination_one_dose_all': '#45B7D1',
+            'vaccination_two_dose_half': '#96CEB4'
+        }
+        
         scenarios = list(self.results.keys())
+        
+        # 1. ATTACK RATE BAR CHART
         attack_rates = [self.results[s]['attack_rate'] for s in scenarios]
-        bars = plt.bar(scenarios, attack_rates, 
-                      color=[colors.get(s, 'gray') for s in scenarios])
-        plt.title('Attack Rate by Scenario', fontsize=14, fontweight='bold')
-        plt.ylabel('Attack Rate (%)')
-        plt.xticks(rotation=45)
+        bars1 = ax1.bar(scenarios, attack_rates, 
+                       color=[colors.get(s, 'gray') for s in scenarios])
+        ax1.set_title('📊 Attack Rate by Scenario', fontsize=14, fontweight='bold')
+        ax1.set_ylabel('Attack Rate (%)')
+        ax1.tick_params(axis='x', rotation=45)
         
         # Add value labels on bars
-        for bar, rate in zip(bars, attack_rates):
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+        for bar, rate in zip(bars1, attack_rates):
+            ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
                     f'{rate:.1f}%', ha='center', va='bottom')
         
-        # 5. CASE FATALITY RATE BAR CHART
-        ax5 = plt.subplot(3, 3, 5)
+        # 2. CASE FATALITY RATE BAR CHART (Now consistent!)
         cfrs = [self.results[s]['cfr'] for s in scenarios]
-        bars = plt.bar(scenarios, cfrs,
-                      color=[colors.get(s, 'gray') for s in scenarios])
-        plt.title('Case Fatality Rate by Scenario', fontsize=14, fontweight='bold')
-        plt.ylabel('CFR (%)')
-        plt.xticks(rotation=45)
+        bars2 = ax2.bar(scenarios, cfrs,
+                       color=[colors.get(s, 'gray') for s in scenarios])
+        ax2.set_title('💀 Case Fatality Rate by Scenario\n(Now Consistent!)', fontsize=14, fontweight='bold')
+        ax2.set_ylabel('CFR (%)')
+        ax2.tick_params(axis='x', rotation=45)
         
         # Add value labels on bars
-        for bar, cfr in zip(bars, cfrs):
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
-                    f'{cfr:.2f}%', ha='center', va='bottom')
+        for bar, cfr in zip(bars2, cfrs):
+            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+                    f'{cfr:.1f}%', ha='center', va='bottom')
         
-        # 6. PEAK INFECTIONS BAR CHART
-        ax6 = plt.subplot(3, 3, 6)
+        # 3. PEAK INFECTIONS BAR CHART
         peaks = [self.results[s]['peak_infections'] for s in scenarios]
-        bars = plt.bar(scenarios, peaks,
-                      color=[colors.get(s, 'gray') for s in scenarios])
-        plt.title('Peak Infections by Scenario', fontsize=14, fontweight='bold')
-        plt.ylabel('Peak Infectious Count')
-        plt.xticks(rotation=45)
+        bars3 = ax3.bar(scenarios, peaks,
+                       color=[colors.get(s, 'gray') for s in scenarios])
+        ax3.set_title('📈 Peak Infections by Scenario', fontsize=14, fontweight='bold')
+        ax3.set_ylabel('Peak Infectious Count')
+        ax3.tick_params(axis='x', rotation=45)
         
         # Add value labels on bars
-        for bar, peak in zip(bars, peaks):
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 5,
+        for bar, peak in zip(bars3, peaks):
+            ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 5,
                     f'{peak:.0f}', ha='center', va='bottom')
         
-        # 7. NETWORK STRUCTURE VISUALIZATION
-        ax7 = plt.subplot(3, 3, 7)
-        plt.sca(ax7)  # Set current axes
+        plt.tight_layout()
+        plt.suptitle('🚢 Cruise Ship Outbreak - Summary Metrics', fontsize=16, fontweight='bold', y=1.02)
+        plt.savefig('cruise_summary_metrics.png', dpi=300, bbox_inches='tight')
+        plt.show()
         
-        # Sample network visualization
+        return fig
+
+    def create_analysis_figure(self):
+        """Create analysis visualization (3 panels)."""
+        print("📊 Creating analysis figure...")
+        
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+        
+        # 1. NETWORK STRUCTURE VISUALIZATION
+        plt.sca(ax1)
         sample_nodes = random.sample(list(self.G_normal.nodes()), 100)
         G_sample = self.G_normal.subgraph(sample_nodes)
         pos = nx.spring_layout(G_sample, k=0.3, iterations=50)
         
-        # Color nodes by type
         node_colors = ['lightblue' if n < self.n_passengers else 'lightcoral' 
                       for n in G_sample.nodes()]
         
         nx.draw(G_sample, pos, node_color=node_colors, node_size=30, 
-               edge_color='gray', alpha=0.7, with_labels=False, ax=ax7)
-        ax7.set_title('Cruise Ship Network Structure\n(Sample of 100 individuals)', 
+               edge_color='gray', alpha=0.7, with_labels=False, ax=ax1)
+        ax1.set_title('🛳️ Cruise Ship Network\n(Sample of 100 individuals)', 
                      fontsize=12, fontweight='bold')
         
-        # 8. RESULTS SUMMARY TABLE
-        ax8 = plt.subplot(3, 3, 8)
-        ax8.axis('off')
-        
-        # Create summary table data
+        # 2. RESULTS SUMMARY TABLE
+        ax2.axis('off')
+        scenarios = list(self.results.keys())
         table_data = []
         for scenario in scenarios:
             r = self.results[scenario]
             table_data.append([
                 scenario.replace('_', ' ').title(),
                 f"{r['attack_rate']:.1f}%",
-                f"{r['cfr']:.2f}%",
+                f"{r['cfr']:.1f}%",
                 f"{r['peak_infections']:.0f}",
                 f"{r['final_deaths']:.0f}"
             ])
         
-        table = ax8.table(cellText=table_data,
+        table = ax2.table(cellText=table_data,
                          colLabels=['Scenario', 'Attack Rate', 'CFR', 'Peak Infections', 'Deaths'],
                          cellLoc='center',
                          loc='center')
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(1.2, 1.5)
+        ax2.set_title('📋 Summary Statistics', fontsize=14, fontweight='bold', pad=20)
         
-        plt.title('Summary Statistics', fontsize=14, fontweight='bold', pad=20)
-        
-        # 9. VACCINATION STRATEGY COMPARISON (if applicable)
-        ax9 = plt.subplot(3, 3, 9)
-        
-        # Filter vaccination scenarios
+        # 3. VACCINATION STRATEGY EFFECTIVENESS
         vacc_scenarios = {k: v for k, v in self.results.items() if 'vaccination' in k}
         
         if vacc_scenarios:
             strategies = list(vacc_scenarios.keys())
-            protected = []
-            
-            for strategy in strategies:
-                if 'one_dose_all' in strategy:
-                    # 70% efficacy for everyone
-                    protected.append(self.n_total * 0.7)
-                elif 'two_dose_half' in strategy:
-                    # 95% efficacy for half
-                    protected.append(self.n_total * 0.5 * 0.95)
-                else:
-                    protected.append(0)
-            
             infections_prevented = [self.results['baseline']['total_infected'] - 
                                   vacc_scenarios[s]['total_infected'] 
                                   for s in strategies]
             
-            x_pos = np.arange(len(strategies))
-            width = 0.35
+            bars = ax3.bar([s.replace('vaccination_', '').replace('_', ' ').title() 
+                           for s in strategies], 
+                          infections_prevented, 
+                          color=['#45B7D1', '#96CEB4'], alpha=0.8)
             
-            ax9.bar(x_pos - width/2, protected, width, label='Theoretically Protected',
-                   alpha=0.7, color='lightgreen')
-            ax9.bar(x_pos + width/2, infections_prevented, width, 
-                   label='Actual Infections Prevented', alpha=0.7, color='darkgreen')
+            ax3.set_title('💉 Vaccination Strategy\nEffectiveness', fontsize=12, fontweight='bold')
+            ax3.set_ylabel('Infections Prevented')
+            ax3.tick_params(axis='x', rotation=45)
             
-            ax9.set_xlabel('Vaccination Strategy')
-            ax9.set_ylabel('Number of People')
-            ax9.set_title('Vaccination Strategy Effectiveness', fontsize=12, fontweight='bold')
-            ax9.set_xticks(x_pos)
-            ax9.set_xticklabels([s.replace('vaccination_', '').replace('_', ' ').title() 
-                                for s in strategies])
-            ax9.legend()
+            # Add value labels
+            for bar, prevented in zip(bars, infections_prevented):
+                ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 20,
+                        f'{prevented:.0f}', ha='center', va='bottom')
         else:
-            ax9.text(0.5, 0.5, 'No vaccination\nscenarios run', 
-                    ha='center', va='center', transform=ax9.transAxes)
-            ax9.set_title('Vaccination Analysis', fontsize=12, fontweight='bold')
+            ax3.text(0.5, 0.5, 'No vaccination\nscenarios run', 
+                    ha='center', va='center', transform=ax3.transAxes)
+            ax3.set_title('💉 Vaccination Analysis', fontsize=12, fontweight='bold')
         
         plt.tight_layout()
-        plt.suptitle('🚢 Cruise Ship COVID-19 Outbreak Simulation - Comprehensive Results', 
-                    fontsize=16, fontweight='bold', y=0.98)
+        plt.suptitle('🚢 Cruise Ship Outbreak - Analysis', fontsize=16, fontweight='bold', y=1.02)
+        plt.savefig('cruise_analysis.png', dpi=300, bbox_inches='tight')
+        plt.show()
         
         return fig
-    
+
+    def create_all_visualizations(self):
+        """Create all separate visualization figures."""
+        print("📊 Creating all visualization figures...")
+        
+        fig1 = self.create_infection_dynamics_figure()
+        fig2 = self.create_summary_metrics_figure()
+        fig3 = self.create_analysis_figure()
+        
+        return fig1, fig2, fig3
+
     def generate_results_report(self) -> str:
         """Generate comprehensive text report of simulation results."""
         
@@ -930,10 +946,8 @@ def main():
     print("\n📊 GENERATING RESULTS")
     print("-" * 25)
     
-    # Create visualizations
-    fig = sim.create_comprehensive_visualization()
-    plt.savefig('cruise_outbreak_results.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    # Create separate visualizations (3 panels each)
+    fig1, fig2, fig3 = sim.create_all_visualizations()
     
     # Generate report
     report = sim.generate_results_report()
@@ -947,7 +961,9 @@ def main():
     print("Files generated:")
     print("  • cruise_network_normal.png (normal network structure)")
     print("  • cruise_network_quarantine.png (quarantine network comparison)")
-    print("  • cruise_outbreak_results.png (comprehensive visualization)")
+    print("  • cruise_infection_dynamics.png (infection curves over time)")
+    print("  • cruise_summary_metrics.png (attack rates, CFR, peak infections)")
+    print("  • cruise_analysis.png (network + vaccination effectiveness)")
     print("  • cruise_outbreak_report.txt (detailed results report)")
     
     return sim

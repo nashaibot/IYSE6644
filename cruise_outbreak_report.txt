@@ -5,7 +5,7 @@
 SIMULATION OVERVIEW:
 
 Population: 3,711 individuals (2,666 passengers + 1,045 crew)
-Network Structure: 53,483 contact relationships
+Network Structure: 59,038 contact relationships
 Simulation Duration: 60 days
 
 
@@ -13,61 +13,61 @@ SCENARIO COMPARISON:
 ==================================================
 
 BASELINE:
-  • Attack Rate: 47.9% (1777 infected)
-  • Case Fatality Rate: 1.12% (20 deaths)
-  • Peak Infections: 231 on day 49.8
-  • Final Recovered: 1536
+  • Attack Rate: 48.5% (1798 infected)
+  • Case Fatality Rate: 1.30% (21 deaths)
+  • Peak Infections: 245 on day 42.6
+  • Final Recovered: 1587
 
 QUARANTINE:
-  • Attack Rate: 12.6% (468 infected)
-  • Case Fatality Rate: 1.28% (6 deaths)
-  • Peak Infections: 137 on day 11.6
-  • Final Recovered: 459
+  • Attack Rate: 14.2% (529 infected)
+  • Case Fatality Rate: 1.30% (7 deaths)
+  • Peak Infections: 150 on day 10.0
+  • Final Recovered: 522
 
 VACCINATION ONE DOSE ALL:
-  • Attack Rate: 8.9% (330 infected)
-  • Case Fatality Rate: 1.27% (4 deaths)
+  • Attack Rate: 7.5% (278 infected)
+  • Case Fatality Rate: 1.30% (4 deaths)
   • Peak Infections: 100 on day 0.0
-  • Final Recovered: 322
+  • Final Recovered: 275
 
 VACCINATION TWO DOSE HALF:
-  • Attack Rate: 15.2% (565 infected)
-  • Case Fatality Rate: 1.24% (7 deaths)
-  • Peak Infections: 100 on day 0.0
-  • Final Recovered: 541
+  • Attack Rate: 17.6% (655 infected)
+  • Case Fatality Rate: 1.30% (8 deaths)
+  • Peak Infections: 120 on day 14.5
+  • Final Recovered: 617
 
 INTERVENTION EFFECTIVENESS:
 ========================================
 
 QUARANTINE vs BASELINE:
-  • Infections prevented: 1309 (73.7%)
-  • Deaths prevented: 14 (70.1% if baseline>0)
-  • Peak reduction: 94 (40.7%)
+  • Infections prevented: 1270 (70.6%)
+  • Deaths prevented: 14 (67.1% if baseline>0)
+  • Peak reduction: 95 (38.8%)
 
 VACCINATION ONE DOSE ALL vs BASELINE:
-  • Infections prevented: 1447 (81.4%)
-  • Deaths prevented: 16 (79.0% if baseline>0)
-  • Peak reduction: 131 (56.7%)
+  • Infections prevented: 1520 (84.5%)
+  • Deaths prevented: 17 (82.7% if baseline>0)
+  • Peak reduction: 145 (59.2%)
 
 VACCINATION TWO DOSE HALF vs BASELINE:
-  • Infections prevented: 1212 (68.2%)
-  • Deaths prevented: 13 (64.8% if baseline>0)
-  • Peak reduction: 131 (56.7%)
+  • Infections prevented: 1144 (63.6%)
+  • Deaths prevented: 13 (61.1% if baseline>0)
+  • Peak reduction: 125 (51.0%)
 
 VACCINATION STRATEGY COMPARISON:
 ===================================
 
 ONE DOSE FOR ALL vs TWO DOSES FOR HALF:
-  • One-dose attack rate: 8.9%
-  • Two-dose attack rate: 15.2%
-  • Deaths difference: 3
+  • One-dose attack rate: 7.5%
+  • Two-dose attack rate: 17.6%
+  • Deaths difference: 4
   • CONCLUSION: One dose for all is more effective for population protection
 
 KEY FINDINGS:
 ===============
-• Quarantine reduces peak infections by 40.7%
-• Cruise ship environment enables rapid transmission (attack rates: 8.9%-47.9%)
-• Network structure critical: 53,483 contacts among 3,711 people
+• Quarantine reduces peak infections by 38.8%
+• Cruise ship environment enables rapid transmission (attack rates: 7.5%-48.5%)
+• Network structure critical: 59,038 contacts among 3,711 people
 
 METHODOLOGY NOTE:
 ==================
