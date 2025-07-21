@@ -17,21 +17,11 @@ except ImportError:
     exit(1)
 
 class CruiseShipSimulation:
-    """
-    Comprehensive cruise ship outbreak simulation based on Diamond Princess data.
-    
-    This class implements a network-based SEIRS model for simulating COVID-19
-    transmission on a cruise ship, with focus on vaccination strategies and
-    intervention effectiveness as required by Project 14.
-    """
+
     
     def __init__(self, n_passengers: int = 2666, n_crew: int = 1045):
-        """
-        Initialize cruise ship simulation with Diamond Princess demographics.
-        
+        """        
         Args:
-            n_passengers: Number of passengers (default: 2666, Diamond Princess actual)
-            n_crew: Number of crew members (default: 1045, Diamond Princess actual)
         """
         self.n_passengers = n_passengers
         self.n_crew = n_crew
@@ -786,6 +776,119 @@ Simulation Duration: {list(self.results.values())[0]['time'][-1]:.0f} days
         
         return report
 
+    def create_detailed_network_visualizations(self):
+        """Create detailed network visualizations for academic report."""
+        print("🖼️ Creating detailed network visualizations...")
+        
+        # 1. NORMAL CRUISE SHIP NETWORK VISUALIZATION
+        fig1, ax1 = plt.subplots(1, 1, figsize=(12, 10))
+        
+        # Sample 500 nodes for visualization
+        sample_nodes = random.sample(list(self.G_normal.nodes()), 500)
+        G_sample = self.G_normal.subgraph(sample_nodes)
+        
+        # Create layout
+        pos = nx.spring_layout(G_sample, k=0.5, iterations=100)
+        
+        # Color and size nodes by type and service
+        node_colors = []
+        node_sizes = []
+        for node in G_sample.nodes():
+            if node < self.n_passengers:
+                node_colors.append('lightblue')  # Passengers
+                node_sizes.append(50)
+            else:
+                # Crew - different colors for service types
+                service_type = self.G_normal.nodes[node].get('service_type', 'passenger_service')
+                if service_type == 'non_passenger_service':
+                    node_colors.append('darkred')  # Non-passenger service (isolated)
+                    node_sizes.append(60)
+                else:
+                    node_colors.append('lightcoral')  # Passenger service
+                    node_sizes.append(55)
+        
+        # Draw edges with weights
+        edge_weights = [G_sample[u][v].get('weight', 0.1) for u, v in G_sample.edges()]
+        edge_colors = ['gray' if w < 0.5 else 'darkgray' for w in edge_weights]
+        edge_widths = [w * 2 for w in edge_weights]  # Scale weights for visibility
+        
+        nx.draw_networkx_edges(G_sample, pos, edge_color=edge_colors, width=edge_widths, alpha=0.6, ax=ax1)
+        nx.draw_networkx_nodes(G_sample, pos, node_color=node_colors, node_size=node_sizes, alpha=0.8, ax=ax1)
+        
+        ax1.set_title('🚢 Normal Cruise Ship Network Structure\n(500 Random Individuals)', 
+                     fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Non-passenger service crew (red) isolated in clusters\nDarker edges show stronger contact weights')
+        
+        # Add legend
+        from matplotlib.patches import Patch
+        legend_elements = [
+            Patch(facecolor='lightblue', label='Passengers'),
+            Patch(facecolor='lightcoral', label='Passenger Service Crew'),
+            Patch(facecolor='darkred', label='Non-Passenger Service Crew (Isolated)')
+        ]
+        ax1.legend(handles=legend_elements, loc='upper right')
+        ax1.axis('off')
+        
+        plt.tight_layout()
+        plt.savefig('cruise_network_normal.png', dpi=300, bbox_inches='tight')
+        plt.show()
+        
+        # 2. QUARANTINE NETWORK VISUALIZATION
+        fig2, ax2 = plt.subplots(1, 1, figsize=(12, 10))
+        
+        # Same 500 nodes but quarantine network
+        G_quarantine_sample = self.G_quarantine.subgraph(sample_nodes)
+        
+        # Use same positions for comparison
+        pos_q = pos.copy()
+        
+        # Color nodes same way
+        node_colors_q = []
+        node_sizes_q = []
+        for node in G_quarantine_sample.nodes():
+            if node < self.n_passengers:
+                node_colors_q.append('lightblue')  # Passengers
+                node_sizes_q.append(50)
+            else:
+                service_type = self.G_quarantine.nodes[node].get('service_type', 'passenger_service')
+                if service_type == 'non_passenger_service':
+                    node_colors_q.append('darkred')
+                    node_sizes_q.append(60)
+                else:
+                    node_colors_q.append('lightcoral')
+                    node_sizes_q.append(55)
+        
+        # Draw quarantine network (much fewer edges)
+        if G_quarantine_sample.edges():
+            edge_weights_q = [G_quarantine_sample[u][v].get('weight', 0.1) for u, v in G_quarantine_sample.edges()]
+            edge_colors_q = ['red' if w > 0.5 else 'orange' for w in edge_weights_q]
+            edge_widths_q = [w * 3 for w in edge_weights_q]  # Thicker for visibility
+            
+            nx.draw_networkx_edges(G_quarantine_sample, pos_q, edge_color=edge_colors_q, 
+                                 width=edge_widths_q, alpha=0.8, ax=ax2)
+        
+        nx.draw_networkx_nodes(G_quarantine_sample, pos_q, node_color=node_colors_q, 
+                             node_size=node_sizes_q, alpha=0.8, ax=ax2)
+        
+        ax2.set_title('🔒 Quarantine Network Structure\n(Same 500 Individuals - Cabin Isolation)', 
+                     fontsize=14, fontweight='bold')
+        ax2.set_xlabel(f'Connections reduced from {G_sample.number_of_edges()} to {G_quarantine_sample.number_of_edges()} edges\n'
+                      f'({(1-G_quarantine_sample.number_of_edges()/G_sample.number_of_edges())*100:.1f}% reduction)')
+        
+        # Add legend
+        ax2.legend(handles=legend_elements, loc='upper right')
+        ax2.axis('off')
+        
+        plt.tight_layout()
+        plt.savefig('cruise_network_quarantine.png', dpi=300, bbox_inches='tight')
+        plt.show()
+        
+        print("✅ Network visualizations saved:")
+        print("  • cruise_network_normal.png - Normal cruise ship network")
+        print("  • cruise_network_quarantine.png - Quarantine network comparison")
+        
+        return fig1, fig2
+
 
 def main():
     """Main function to run comprehensive cruise ship simulation."""
@@ -803,6 +906,11 @@ def main():
     print("-" * 35)
     sim.build_cruise_network()
     sim.build_quarantine_network()
+    
+    # Create detailed network visualizations first
+    print("\n🖼️ CREATING DETAILED NETWORK VISUALIZATIONS")
+    print("-" * 45)
+    sim.create_detailed_network_visualizations()
     
     # Run scenarios
     print("\n🧪 RUNNING SIMULATION SCENARIOS")
@@ -837,6 +945,8 @@ def main():
     
     print("\n✅ SIMULATION COMPLETE!")
     print("Files generated:")
+    print("  • cruise_network_normal.png (normal network structure)")
+    print("  • cruise_network_quarantine.png (quarantine network comparison)")
     print("  • cruise_outbreak_results.png (comprehensive visualization)")
     print("  • cruise_outbreak_report.txt (detailed results report)")
     

@@ -1,0 +1,309 @@
+🚢 CRUISE SHIP COVID-19 OUTBREAK SIMULATION - MODEL ASSUMPTIONS
+================================================================
+
+This document comprehensively lists all assumptions made in the network-based SEIRS 
+simulation for Project 14 (IYSE 6644). Each assumption is justified by literature, 
+real-world data, or epidemiological principles.
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 📊 POPULATION STRUCTURE ASSUMPTIONS
+
+### **Ship Demographics (Based on Diamond Princess)**
+- **Total Population**: 3,711 individuals
+  - Passengers: 2,666 (71.9%)
+  - Crew: 1,045 (28.1%)
+  - **Justification**: Exact Diamond Princess demographics for real-world validation
+
+### **Accommodation Structure**
+- **Passengers per Cabin**: 2 people
+  - **Assumption**: Standard cruise ship cabin occupancy
+  - **Impact**: Creates high-risk household-like transmission units
+  
+- **Ship Layout**: 17 decks
+  - **Justification**: Diamond Princess actual deck configuration
+  - **Purpose**: Models vertical spatial distribution and interaction patterns
+
+- **Dining Organization**: 9 dining cohorts, 8 people each
+  - **Assumption**: Organized dining reduces chaos, creates repeated contact groups
+  - **Rationale**: Realistic cruise ship meal service logistics
+
+### **Crew Structure**
+- **Passenger-Crew Ratio**: 2.5:1
+- **Service Types**: 
+  - 50% Passenger Service Crew (interact with passengers)
+  - 50% Non-Passenger Service Crew (isolated, engine/kitchen staff)
+  - **Assumption**: Operational segregation for ship safety/efficiency
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🦠 DISEASE PARAMETER ASSUMPTIONS
+
+### **COVID-19 Epidemiological Parameters**
+- **Incubation Period**: Log-normal distribution
+  - Mean: 1.63, Standard Deviation: 0.5
+  - **Average**: ~5.2 days from exposure to infectious
+  - **Source**: Lauer et al. (2020) - peer-reviewed incubation period study
+  
+- **Infectious Period**: 7 days
+  - **Assumption**: Average time from symptom onset to recovery/isolation
+  - **Range**: Covers both symptomatic and asymptomatic infectious periods
+
+### **Transmission Characteristics**
+- **Base Transmission Rate**: 1.0 per contact per day
+  - **Assumption**: High transmission due to cruise ship confined environment
+  - **Rationale**: Accounts for close quarters, shared air circulation, limited outdoor space
+  
+- **Asymptomatic Fraction**: 46.5%
+  - **Source**: Diamond Princess data - 46.5% of infected were asymptomatic
+  - **Impact**: These individuals transmit without knowing, continuing normal activities
+
+### **Clinical Outcomes**
+- **Case Fatality Rate (CFR)**: 1.3%
+  - **Calculation**: 9 deaths ÷ 712 total infections (Diamond Princess)
+  - **Assumption**: Accounts for both symptomatic and asymptomatic cases
+  
+- **Age-Independent Mortality**: Single CFR for all individuals
+  - **Simplification**: Ignores age stratification for computational efficiency
+  - **Justification**: Focus on intervention effectiveness, not age demographics
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🔗 NETWORK STRUCTURE ASSUMPTIONS
+
+### **Contact Duration and Frequency**
+
+#### **Cabin Connections (Highest Risk)**
+- **Passenger Cabinmates**: 16-20 hours together daily
+  - **Assumption**: Sleep, personal time, extended close contact
+  - **Weight Calculation**: Near-maximum transmission risk (weight ≈ 1.0)
+
+- **Crew Cabinmates**: 12-16 hours together daily  
+  - **Assumption**: Work shifts reduce shared time vs. passengers
+  - **Rationale**: Crew work different schedules, less cabin time
+
+#### **Dining Interactions**
+- **Cohort Size**: 8 people per dining group
+- **Duration**: 1.5-3 hours per meal
+- **Frequency**: 3 meals daily (implicit in model)
+- **Assumption**: Same dining companions throughout voyage
+
+#### **Deck-Level Interactions**
+- **Contacts per Person**: 5 random deck-mates
+- **Duration**: 0.5-2 hours (recreational activities, walking)
+- **Assumption**: Casual social interactions within deck communities
+
+#### **Facility Sharing**
+- **Facilities Modeled**: Pool, lounge, gym, spa, library, theater (6 total)
+- **Users per Facility**: 200-500 people
+- **Connections per User**: Up to 12 other facility users
+- **Duration**: 0.5-1.5 hours shared time
+- **Assumption**: Popular facilities create mixing points for transmission
+
+#### **Crew Work Interactions**
+- **Team Size**: 8 crew members per work unit
+- **Duration**: 6-10 hours shared shifts
+- **Assumption**: Close working relationships during operational duties
+
+#### **Passenger-Crew Service Interactions**
+- **Service Ratio**: Each service crew serves 10-25 passengers
+- **Duration**: 0.1-0.5 hours (brief service encounters)
+- **Frequency**: Multiple daily interactions (housekeeping, dining, activities)
+
+#### **Transient Random Encounters**
+- **Frequency**: 5 random contacts per person daily
+- **Duration**: 0.05-0.2 hours (hallway passing, elevator rides)
+- **Purpose**: Models unexpected transmission opportunities
+
+### **Contact Weight Calculation**
+- **Formula**: weight = 1 - exp(-duration / 3.0)
+- **Saturation Point**: 3 hours (weight approaches 1.0)
+- **Assumption**: Exponential increase in transmission risk with contact duration
+- **Rationale**: Longer contact = higher viral load exposure
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 💉 VACCINATION ASSUMPTIONS
+
+### **Vaccine Efficacy**
+- **Single Dose Protection**: 70% reduction in infection risk
+  - **Source**: Real-world COVID-19 vaccine effectiveness data
+  - **Assumption**: Protection begins immediately (simplified timing)
+  
+- **Double Dose Protection**: 95% reduction in infection risk
+  - **Source**: Phase 3 clinical trial data for mRNA vaccines
+  - **Assumption**: Maximum achievable protection level
+
+### **Vaccination Strategy Modeling**
+- **Strategy 1 - One Dose for All**: 
+  - 100% population coverage × 70% efficacy = 70% average protection
+  - **Assumption**: Prioritizes broad population immunity
+
+- **Strategy 2 - Two Doses for Half**:
+  - 50% population coverage × 95% efficacy = 47.5% average protection
+  - **Assumption**: Prioritizes maximum individual protection
+
+### **Implementation Constraints**
+- **Daily Vaccination Capacity**: 200 doses per day
+  - **Assumption**: Realistic medical facility capacity on cruise ship
+  - **Timeline**: 19 days to vaccinate entire population with single doses
+
+- **Dose Interval**: 21 days between first and second dose
+  - **Standard**: WHO/CDC recommended spacing for mRNA vaccines
+
+- **Immunity Development Time**: 14 days
+  - **Assumption**: Time from vaccination to protective immunity
+  - **Simplification**: Model applies protection immediately
+
+### **Coverage Assumptions**
+- **100% Compliance**: All offered individuals accept vaccination
+- **Random Selection**: No prioritization by age, risk, or role
+- **Simplified Logistics**: No vaccine storage, transport, or wastage constraints
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🔒 INTERVENTION ASSUMPTIONS
+
+### **Quarantine Measures**
+- **Implementation Timing**: Day 10 of outbreak
+  - **Assumption**: Represents realistic detection and response delay
+  - **Rationale**: Time needed to recognize outbreak and implement ship-wide measures
+
+- **Compliance Rate**: 95%
+  - **Assumption**: High but not perfect adherence to cabin isolation
+  - **Reality**: Some individuals violate restrictions for essential needs
+
+- **Contact Reduction**: 96.1% of normal connections eliminated
+  - **Preserved Contacts**: Only cabinmates and essential crew operations
+  - **Transmission Reduction**: 80% lower transmission rate during quarantine
+
+### **Mask and Social Distancing (Embedded in Parameters)**
+- **Mask Effectiveness**: 65% transmission reduction
+  - **Source**: Meta-analysis of mask effectiveness studies
+  - **Assumption**: Universal proper mask usage when implemented
+
+- **Social Distancing**: 40% reduction in contact frequency
+  - **Assumption**: Maintained distance reduces but doesn't eliminate interactions
+  - **Implementation**: Modified facility usage, dining arrangements
+
+### **Testing Protocol**
+- **Test Sensitivity**: 85%
+  - **Assumption**: RT-PCR testing with realistic false-negative rate
+  - **Impact**: 15% of infected individuals test negative
+
+- **Daily Testing Capacity**: 150 tests
+  - **Constraint**: Limited by laboratory capacity and test supply
+  - **Strategy**: Prioritizes symptomatic and high-risk individuals
+
+- **Result Delay**: 1 day
+  - **Assumption**: Time from sample collection to result notification
+  - **Impact**: Continued transmission during result waiting period
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🎯 INITIAL CONDITIONS AND MODEL SETUP
+
+### **Outbreak Seeding**
+- **Initial Infectious**: 100 individuals (2.7% of population)
+  - **Assumption**: Significant community transmission before detection
+  - **Rationale**: Models realistic cruise ship outbreak where many are already infected
+
+- **Initial Exposed**: 20 individuals
+  - **Assumption**: Recent exposures not yet infectious
+  - **Purpose**: Creates realistic epidemic progression
+
+- **Geographic Distribution**: Random placement throughout ship
+  - **Simplification**: No assumption about outbreak origin location
+
+### **Simulation Parameters**
+- **Duration**: 60 days
+  - **Rationale**: Covers complete epidemic cycle plus intervention effects
+  - **Comparison**: Longer than typical cruise (7-14 days) to see full dynamics
+
+- **Time Step**: Variable (SEIRS+ adaptive)
+  - **Advantage**: Captures rapid transmission dynamics during peak periods
+
+### **Recovery and Mortality Rates (Manual Calculation)**
+- **Recovery Rate**: 1/7 per day (inverse of 7-day infectious period)
+- **Mortality Rate**: (1.3% CFR) × (1/7 per day) = 0.186% per infectious day
+- **Assumption**: Deaths occur from infectious population, not after recovery
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🔬 MODEL LIMITATIONS AND SIMPLIFICATIONS
+
+### **Spatial Assumptions**
+- **No Cabin Location Effects**: All cabins equally connected to ship networks
+- **Uniform Deck Interaction**: No preferential mixing by deck location
+- **Simplified Ventilation**: No modeling of air circulation patterns
+
+### **Temporal Assumptions**
+- **Static Networks**: Contact patterns don't change over time (except quarantine)
+- **No Behavioral Adaptation**: Individuals don't reduce contacts as outbreak progresses
+- **Immediate Intervention**: No gradual implementation of quarantine measures
+
+### **Biological Simplifications**
+- **No Viral Load Variation**: All infectious individuals equally transmissive
+- **No Immunity Waning**: Recovered individuals permanently immune
+- **No Reinfection**: SEIRS model assumes temporary immunity, but set to permanent
+
+### **Operational Assumptions**
+- **Perfect Information**: Complete knowledge of outbreak status for interventions
+- **Unlimited Resources**: No constraints on medical care, isolation facilities
+- **No External Factors**: No passenger disembarkation, supply issues, crew changes
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 📈 VALIDATION AGAINST REAL-WORLD DATA
+
+### **Diamond Princess Comparison**
+- **Actual Outbreak**: 712 infections (19.2% attack rate)
+- **Model Baseline**: 1,777 infections (47.9% attack rate)
+- **Interpretation**: Model shows what could happen without early intervention
+
+### **Network Density Validation**
+- **Model Network**: 53,483 connections among 3,711 people (14.4 avg. contacts)
+- **Rationale**: Higher than typical social networks due to confined cruise environment
+- **Realism**: Reflects close quarters, shared facilities, organized activities
+
+### **Intervention Effectiveness**
+- **Quarantine Model**: 73.7% infection reduction
+- **Real-World Range**: 60-90% effectiveness for comprehensive isolation measures
+- **Validation**: Model results within observed intervention effectiveness bounds
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 🎯 MODEL STRENGTHS FOR PROJECT 14 ANALYSIS
+
+### **Resource Allocation Focus**
+- **Vaccination Strategy Comparison**: Direct answer to Project 14 question
+- **Clear Trade-offs**: 70% × 100% vs. 95% × 50% coverage scenarios
+- **Quantified Outcomes**: Infections prevented, deaths avoided, peak reduction
+
+### **Network-Based Realism**
+- **Individual-Level Modeling**: More realistic than compartmental models
+- **Heterogeneous Contacts**: Different risk levels for different interaction types
+- **Spatial Structure**: Reflects actual cruise ship layout and operations
+
+### **Policy-Relevant Scenarios**
+- **Implementable Interventions**: Quarantine, vaccination, testing protocols
+- **Realistic Constraints**: Limited vaccine supply, testing capacity, compliance rates
+- **Comparable Outcomes**: Attack rates, fatality rates, epidemic duration
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+## 📋 SUMMARY OF KEY ASSUMPTIONS
+
+**POPULATION**: 3,711 individuals in realistic cruise ship structure
+**DISEASE**: COVID-19 with 5.2-day incubation, 7-day infectious period, 1.3% CFR
+**TRANSMISSION**: 1.0 per contact daily, weight increases exponentially with duration
+**NETWORK**: 53,483 connections modeling cabin, dining, work, facility, and random contacts
+**VACCINATION**: 70% (1-dose) vs 95% (2-dose) efficacy, 200 doses/day capacity
+**QUARANTINE**: 96% contact reduction, 80% transmission reduction, 95% compliance
+**INITIAL CONDITIONS**: 100 infectious, 20 exposed, representing established outbreak
+**INTERVENTIONS**: Day 10 implementation, perfect detection and compliance
+
+These assumptions create a realistic, policy-relevant model for analyzing vaccination 
+resource allocation strategies in confined, high-transmission environments.
+
+═══════════════════════════════════════════════════════════════════════════════════
