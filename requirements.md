@@ -62,3 +62,13 @@ that you can “eventually” give everyone two doses?
 
 To determine whether a particular strategy is any good, you probably ought to consider the number of people who eventually get infected (or die), the length of the epidemic, etc.
 
+Project Milestone 2: June 27, 2025 (Friday)
+All we’re looking for here are a couple of paragraphs describing what you’ve done so far and what you still need to do. Only one team member needs to turn in this assignment, but you must clearly and unambiguously list EVERYONE on the team. Failure to do so will result in loss of points. The intent is not to provide an almost completed report as the TAs will not be grading anything beyond checking to see that you’ve provided the paragraphs. Please do not submit a rough draft copy of your project.
+
+
+Project Milestone 3: July 21, 2025
+Please submit 2 files as a part of submission (if you chose a non-coding-based topic then you only need to provide your report). One file will be a pdf file, which will cover your final project report. The PDF must be separate from the zip file.
+
+The second file should be a zip file, which will cover all the code documents, Arena file, and any other file you may think important to submit. We do not need every single individual file that you have ever created while working on your project nor do we need the entire version control history of any source code. Please include a README file in the zip folder, explaining what each file is, so that we can evaluate your projects easily. If your download is failing to Canvas, then that means the file is too large and you have included files that are not required to adequately assess your project. You cannot submit links to Google Docs, GitHub, or any other online link to the content of your project.
+
+For each group, only one person from that group needs to submit the project files.
