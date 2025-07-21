@@ -1,0 +1,77 @@
+
+🚢 CRUISE SHIP COVID-19 OUTBREAK SIMULATION - RESULTS REPORT
+============================================================
+
+SIMULATION OVERVIEW:
+
+Population: 3,711 individuals (2,666 passengers + 1,045 crew)
+Network Structure: 55,681 contact relationships
+Simulation Duration: 60 days
+
+
+SCENARIO COMPARISON:
+==================================================
+
+BASELINE:
+  • Attack Rate: 47.6% (1768 infected)
+  • Case Fatality Rate: 1.13% (20 deaths)
+  • Peak Infections: 239 on day 45.9
+  • Final Recovered: 1532
+
+QUARANTINE:
+  • Attack Rate: 15.5% (575 infected)
+  • Case Fatality Rate: 1.28% (7 deaths)
+  • Peak Infections: 163 on day 11.0
+  • Final Recovered: 568
+
+VACCINATION ONE DOSE ALL:
+  • Attack Rate: 7.1% (262 infected)
+  • Case Fatality Rate: 1.25% (3 deaths)
+  • Peak Infections: 100 on day 0.0
+  • Final Recovered: 252
+
+VACCINATION TWO DOSE HALF:
+  • Attack Rate: 18.4% (683 infected)
+  • Case Fatality Rate: 1.23% (8 deaths)
+  • Peak Infections: 119 on day 16.8
+  • Final Recovered: 644
+
+INTERVENTION EFFECTIVENESS:
+========================================
+
+QUARANTINE vs BASELINE:
+  • Infections prevented: 1193 (67.5%)
+  • Deaths prevented: 13 (63.0% if baseline>0)
+  • Peak reduction: 76 (31.8%)
+
+VACCINATION ONE DOSE ALL vs BASELINE:
+  • Infections prevented: 1506 (85.2%)
+  • Deaths prevented: 17 (83.6% if baseline>0)
+  • Peak reduction: 139 (58.2%)
+
+VACCINATION TWO DOSE HALF vs BASELINE:
+  • Infections prevented: 1085 (61.4%)
+  • Deaths prevented: 12 (57.9% if baseline>0)
+  • Peak reduction: 120 (50.2%)
+
+VACCINATION STRATEGY COMPARISON:
+===================================
+
+ONE DOSE FOR ALL vs TWO DOSES FOR HALF:
+  • One-dose attack rate: 7.1%
+  • Two-dose attack rate: 18.4%
+  • Deaths difference: 5
+  • CONCLUSION: One dose for all is more effective for population protection
+
+KEY FINDINGS:
+===============
+• Quarantine reduces peak infections by 31.8%
+• Cruise ship environment enables rapid transmission (attack rates: 7.1%-47.6%)
+• Network structure critical: 55,681 contacts among 3,711 people
+
+METHODOLOGY NOTE:
+==================
+• Used SEIRS+ network-based epidemiological modeling
+• Manual state tracking implemented due to library limitations
+• Network structure based on Diamond Princess cruise ship layout
+• Disease parameters calibrated to COVID-19 literature
