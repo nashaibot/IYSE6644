@@ -11,8 +11,16 @@ This project simulates a COVID-19 outbreak on a cruise ship environment using an
   Incorporates Susceptible, Exposed, Infected, Recovered, and Fatal states using individual-based dynamics and realistic contact graphs.
 
 - **Dynamic Contact Graphs:**  
-  - Base (G): Weighted based on the accumulation of daily contacts between the nodes. Cabinmates, shared facilities, deck level interactions incorporated.   
+  - Base (G): Weighted based on the accumulation of daily contacts between the nodes. Cabin connections, social/dining connections, random encounter, service interactions incorporated.   
   - Quarantine (G_Q): Sparse graph reflecting limited cabinmates and crew-to-crew links after isolation protocol. 
+
+- **Network Structure**:
+  - 3,700 total individuals (2,590 passengers, 1,110 crew)
+  - ~26,000 edges representing high-density contact patterns:
+    - **Cabin mates**: 1.0 weight
+    - **Dining groups / Work teams**: 0.5 (passengers) / 0.7 (crew)
+    - **Service interactions**: 0.3
+    - **Random encounters**: 0.1
 
 - **Parameter Calibration:**  
   Based on real outbreak data such as the 2020 Diamond Princess case and academic literature. Refer to the parameters description:
@@ -25,9 +33,6 @@ This project simulates a COVID-19 outbreak on a cruise ship environment using an
     | `GAMMA`     | Rate of recovery                                  |
     | `MU_I`      | Rate of infection-related mortality               |
     | `G_quarantine` | Contact graph used during quarantine           |
-    | `BETA_Q`    | Transmission rate for detected (quarantined) cases|
-    | `SIGMA_Q`   | Progression rate for detected (quarantined) cases |
-    | `GAMMA_Q`   | Recovery rate for detected (quarantined) cases    |
     | `theta_E`   | Testing rate for exposed individuals              |
     | `theta_I`   | Testing rate for infected individuals             |
     | `initI`   | Initial number of infected individuals             |
@@ -35,51 +40,43 @@ This project simulates a COVID-19 outbreak on a cruise ship environment using an
 
 ## Simulation Scenarios
 
-- Basic transmission dynamic with 100 initially infected groups onboard.
-- Gradual enforcement of intervention. Mask mandates on day 5 quarantine protocols on day 10. 
-
+The threee main scenarios to compare the effectiveness of intervention strategies:
+1. **Baseline** - Full network with no mitigation. 
+2. **Complete Quarantine** - Passengers are isolated in their cabins.
+3. **Universal Single-Dose Vaccination** - All individuals receive a single-dose of vaccination. 70% effectiveness via 50% reduction in susceptibility and 40% reduction in transmission rate. 
+4. **Two-Dose Vaccination for Half the Population** - 50% of population receives an additional dose of vacciantion. Higher individual protection, lower coverage
 
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - `networkx` (version 2.8)
 - `numpy`
 - `matplotlib`
 - `seirsplus` 
-- `random`
-- `itertools`
-- `jupyterlab` (optional, can use other jupyter environment to run .ipynb file)
+- `scipy`
+
 
 ## Files
 
-- `cruise_outbreak_simulation.ipynb`: Full model and analysis notebook.
-- `SEIRS`: original SEIRS package directory.
+- `cruise_outbreak_simulation_simplified.py`: The main simulation script. Output is printed to the console and includes time-stepped simulation logs and summary results.
 - `README.md`: Project overview and usage instructions.
 
 ## How to Run
 
 1. **Install Dependencies** 
 
-In terminal, install required packages by running:
+Ensure Python 3.9+ is installed. Then install required packages by running:
 ```bash
-pip3 install seirsplus networkx==2.8 numpy matplotlib random itertools
-```
-Alternatively, you can install in jupyter notebook with command: `!pip3 install <packages>`
-
-2. **Download or Clone repo**
-
-In terminal navigate to desired location to clone gitHub into.
-```bash 
-git clone https://github.com/nashaibot/IYSE6644.git
+pip3 install seirsplus networkx==2.8 numpy matplotlib scipy
 ```
 
-3. **Run the Simulation**
+2. **Run the Simulation**
 
-Run the provided `cruise_outbreak_simulation.ipynb` to simulate. Use preferred jupyter environment to run the file. 
+Once all the dependencies are downloaded, run the provided `cruise_outbreak_simulation_simplified.py` to simulate. 
 
-Optionally, if `jupyterlab` is installed, open the lab using `python3 -m jupyterlab` and run the file. 
+```bash
+python3 cruise_outbreak_simulation_simplifeid.py
+```
 
 Modify the parameters based on the scenarios of interest. Refer to the parameters table above or (https://github.com/ryansmcgee/seirsplus/wiki/SEIRSModel-Class) for more information. 
-
-
